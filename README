@@ -23,6 +23,7 @@ Under Debian, you can run:
 apt-get install python python-crypto python-openssl
 If you want to add the sqlite support, you should run:
 apt-get install python-sqlite
+sqlite3 is also supported, which is included with python in RHEL6.
 Or, if you want to add the mysql support, you should run:
 apt-get install python-mysqldb
 If you chosen the mysql support, you must create a database and create the

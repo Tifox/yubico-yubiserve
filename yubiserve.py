@@ -10,6 +10,10 @@ try:
 except ImportError:
 	pass
 try:
+	import sqlite3
+except ImportError:
+	pass
+try:
 	import sqlite
 except ImportError:
 	pass
@@ -45,7 +49,7 @@ class OATHValidation():
 	def validateOATH(self, OATH, publicID):
 		cur = self.con.cursor()
 		cur.execute("SELECT counter, secret FROM oathtokens WHERE publicname = '" + publicID + "' AND active = '1'")
-		if (cur.rowcount != 1):
+		if cur:
 			validationResult = self.status['BAD_OTP']
 			return validationResult
 		(actualcounter, key) = cur.fetchone()
@@ -99,6 +103,7 @@ class OTPValidation():
 	def getResponse(self):
 		return self.validationResponse
 	def validateOTP(self, OTP):
+		global config
 		self.OTP = re.escape(OTP)
 		self.validationResult = 0
 		if (len(OTP) <= 32) or (len(OTP) > 48):
@@ -109,15 +114,21 @@ class OTPValidation():
 			if match.group(1) and match.group(2):
 				self.userid = match.group(1)
 				self.token = self.modhex2hex(match.group(2))
+				# pdb.set_trace()
 				cur = self.con.cursor()
 				cur.execute('SELECT aeskey, internalname FROM yubikeys WHERE publicname = "' + self.userid + '" AND active = "1"')
-				if (cur.rowcount != 1):
+				if not cur:
+					if config['yubiserveDebugLevel'] > 0:
+						print "Yubikey rejected because it is not found in the database, using the query: 'SELECT aeskey, internalname FROM yubikeys WHERE publicname = \"%s\" AND active = \"1\"'" % (self.userid)
 					self.validationResult = self.status['BAD_OTP']
 					return self.validationResult
 				(self.aeskey, self.internalname) = cur.fetchone()
 				self.plaintext = self.aes128ecb_decrypt(self.aeskey, self.token)
 				uid = self.plaintext[:12]
 				if (self.internalname != uid):
+					if config['yubiserveDebugLevel'] > 0:
+						print "Yubikey rejected because the uid (6 byte secret) in the decrypted AES key (set with with ykpersonalise -ouid) does not match the secret key (internalname) in the database"
+						print "Decrypted AES: %s\n Username from yubikey: %s shoould equal the database username: %s" % (self.plaintext, uid, self.internalname)
 					self.validationResult = self.status['BAD_OTP']
 					return self.validationResult
 				if not (self.CRC() or self.isCRCValid()):
@@ -126,7 +137,7 @@ class OTPValidation():
 				self.internalcounter = self.hexdec(self.plaintext[14:16] + self.plaintext[12:14] + self.plaintext[22:24])
 				self.timestamp = self.hexdec(self.plaintext[20:22] + self.plaintext[18:20] + self.plaintext[16:18])
 				cur.execute('SELECT counter, time FROM yubikeys WHERE publicname = "' + self.userid + '" AND active = "1"')
-				if (cur.rowcount != 1):
+				if not cur:
 					self.validationResult = self.status['BAD_OTP']
 					return self.validationResult
 				(self.counter, self.time) = cur.fetchone()
@@ -150,8 +161,10 @@ class YubiServeHandler (BaseHTTPServer.BaseHTTPRequestHandler):
 	server_version = 'Yubiserve/3.0'
 	global config
 	#try:
-	if config['yubiDB'] == 'sqlite':
-		con = sqlite.connect(os.path.dirname(os.path.realpath(__file__)) + '/yubikeys.sqlite')
+	if config['yubiDB'] == 'sqlite3':
+		con = sqlite3.connect(os.path.dirname(os.path.realpath(__file__)) + '/yubikeys.sqlite3', check_same_thread = False)
+	elif config['yubiDB'] == 'sqlite':
+		con = sqlite.connect(os.path.dirname(os.path.realpath(__file__)) + '/yubikeys.sqlite', check_same_thread = False)
 	elif config['yubiDB'] == 'mysql':
 		con = MySQLdb.connect(host=config['yubiMySQLHost'], user=config['yubiMySQLUser'], passwd=config['yubiMySQLPass'], db=config['yubiMySQLName'])
 	#except:
@@ -207,7 +220,7 @@ class YubiServeHandler (BaseHTTPServer.BaseHTTPRequestHandler):
 							apiID = re.escape(getData['id'])
 							cur = self.con.cursor()
 							cur.execute("SELECT secret from apikeys WHERE id = '" + apiID + "'")
-							if cur.rowcount != 0:
+							if cur:
 								api_key = cur.fetchone()[0]
 								otp_hmac = hmac.new(api_key, msg=orderedResult, digestmod=hashlib.sha1).hexdigest().decode('hex').encode('base64').strip()
 							else:
@@ -230,7 +243,7 @@ class YubiServeHandler (BaseHTTPServer.BaseHTTPRequestHandler):
 					apiID = re.escape(getData['id'])
 					cur = self.con.cursor()
 					cur.execute("SELECT secret from apikeys WHERE id = '" + apiID + "'")
-					if cur.rowcount != 0:
+					if cur:
 						api_key = cur.fetchone()[0]
 						otp_hmac = hmac.new(api_key, msg=orderedResult, digestmod=hashlib.sha1).hexdigest().decode('hex').encode('base64').strip()
 			except KeyError:
@@ -264,7 +277,7 @@ class YubiServeHandler (BaseHTTPServer.BaseHTTPRequestHandler):
 							apiID = re.escape(getData['id'])
 							cur = self.con.cursor()
 							cur.execute("SELECT secret from apikeys WHERE id = '" + apiID + "'")
-							if cur.rowcount != 0:
+							if cur:
 								api_key = cur.fetchone()[0]
 								otp_hmac = hmac.new(api_key, msg=result, digestmod=hashlib.sha1).hexdigest().decode('hex').encode('base64').strip()
 							else:
@@ -285,7 +298,7 @@ class YubiServeHandler (BaseHTTPServer.BaseHTTPRequestHandler):
 							apiID = re.escape(getData['id'])
 							cur = self.con.cursor()
 							cur.execute("SELECT secret from apikeys WHERE id = '" + apiID + "'")
-							if cur.rowcount != 0:
+							if cur:
 								api_key = cur.fetchone()[0]
 								otp_hmac = hmac.new(api_key, msg=result, digestmod=hashlib.sha1).hexdigest().decode('hex').encode('base64').strip()
 					except KeyError:
@@ -305,7 +318,7 @@ class YubiServeHandler (BaseHTTPServer.BaseHTTPRequestHandler):
 					apiID = re.escape(getData['id'])
 					cur = self.con.cursor()
 					cur.execute("SELECT secret from apikeys WHERE id = '" + apiID + "'")
-					if cur.rowcount != 0:
+					if cur:
 						api_key = cur.fetchone()[0]
 						otp_hmac = hmac.new(api_key, msg=result, digestmod=hashlib.sha1).hexdigest().decode('hex').encode('base64').strip()
 			except KeyError:
