@@ -158,7 +158,7 @@ class OTPValidation():
 class YubiServeHandler (BaseHTTPServer.BaseHTTPRequestHandler):
 	__base = BaseHTTPServer.BaseHTTPRequestHandler
 	__base_handle = __base.handle
-	server_version = 'Yubiserve/3.0'
+	server_version = 'Yubiserve/3.1'
 	global config
 	#try:
 	if config['yubiDB'] == 'sqlite3':
