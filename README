@@ -116,7 +116,7 @@ t=2010-11-20T23:54:35
 h=
 
 As you can see, the 'h' parameter is not set, and this is because we didn't use
-the signature through API Key. To use it, just add the 'key=<api key id>'
+the signature through API Key. To use it, just add the 'id=<api key id>'
 parameter we had when we added the API Key.
 ex.: http://192.168.0.1:8000/wsapi/2.0/verify?otp=vvnjbbkvjbcnhiretjvjfebbrdgrjjchdhtbderrdbhj&id=1
 This time the response will be like:
