@@ -213,7 +213,7 @@ class YubiServeHandler (BaseHTTPServer.BaseHTTPRequestHandler):
 						orderedResult = 'nonce=' + getData['nonce'] + '&otp=' + getData['otp'] + '&sl=100&status=' + [k for k, v in otpvalidation.status.iteritems() if v == validation][0] + '&t=' + iso_time
 					except KeyError:
 						result = 't=' + iso_time + '\r\notp=' + getData['otp'] + '\r\nnonce=\r\nsl=100\r\nstatus=' + [k for k, v in otpvalidation.status.iteritems() if v == validation][0] + '\r\n'
-						orderedResult = 'nonce=&otp=' + getData['otp'] + 'sl=100&status=' + [k for k, v in otpvalidation.status.iteritems() if v == validation][0] + '&t=' + iso_time
+						orderedResult = 'nonce=&otp=' + getData['otp'] + '&sl=100&status=' + [k for k, v in otpvalidation.status.iteritems() if v == validation][0] + '&t=' + iso_time
 					otp_hmac = ''
 					try:
 						if (getData['id'] != None):
@@ -222,7 +222,7 @@ class YubiServeHandler (BaseHTTPServer.BaseHTTPRequestHandler):
 							cur.execute("SELECT secret from apikeys WHERE id = '" + apiID + "'")
 							if cur:
 								api_key = cur.fetchone()[0]
-								otp_hmac = hmac.new(api_key, msg=orderedResult, digestmod=hashlib.sha1).hexdigest().decode('hex').encode('base64').strip()
+								otp_hmac = hmac.new(str(api_key), msg=str(orderedResult), digestmod=hashlib.sha1).hexdigest().decode('hex').encode('base64').strip()
 							else:
 								result = 't=' + iso_time + '\r\notp=' + getData['otp'] + '\r\nstatus=NO_CLIENT\r\n'
 					except KeyError:
