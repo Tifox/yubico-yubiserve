@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 import re, os, time, socket
 import urlparse, SocketServer, urllib, BaseHTTPServer
 from Crypto.Cipher import AES
