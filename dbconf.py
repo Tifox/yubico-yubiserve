@@ -222,7 +222,7 @@ else:
 				cur.execute('SELECT nickname, publicname FROM oathtokens')
 				print '[Nickname]\t\t>> [PublicID]'
 				for (nickname, publicname) in cur:
-					print '%-23s >> %-21s >> %s ' %  (nickname, publicname)
+					print '%-23s >> %s ' %  (nickname, publicname) 
 			else:
 				print 'No keys in database\n'
 		else:
