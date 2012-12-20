@@ -155,6 +155,44 @@ class OTPValidation():
 		self.con.commit()
 		return self.validationResult
 
+class DB():
+    conn = None
+    cur = None
+
+    def fetchone(self):
+        return (self.cur.fetchone())
+
+    def commit(self):
+	return self.conn.commit()
+
+    def __init__(self):
+        self.connect()
+
+    def connect(self):
+        self.conn = MySQLdb.connect(host=config['yubiMySQLHost'], user=config['yubiMySQLUser'], passwd=config['yubiMySQLPass'], db=config['yubiMySQLName'])
+
+    def cursor(self):
+        self.cur = self.conn.cursor()
+        return self
+
+    def execute(self, sql):
+    	try:
+    	  self.cur.execute(sql)
+        except MySQLdb.Error, e:
+          if e[0] == 2006:
+             print e[1]
+             self.cur.close()
+             self.connect()
+             self.cursor()
+             self.cur.execute(sql)
+          else:
+             print "unhandled MySQL exception"
+             print e
+             quit()
+        except Exception, e:
+          print "unhandled exception"
+          print repr(e)
+    	return self
 class YubiServeHandler (BaseHTTPServer.BaseHTTPRequestHandler):
 	__base = BaseHTTPServer.BaseHTTPRequestHandler
 	__base_handle = __base.handle
@@ -166,7 +204,7 @@ class YubiServeHandler (BaseHTTPServer.BaseHTTPRequestHandler):
 	elif config['yubiDB'] == 'sqlite':
 		con = sqlite.connect(os.path.dirname(os.path.realpath(__file__)) + '/yubikeys.sqlite', check_same_thread = False)
 	elif config['yubiDB'] == 'mysql':
-		con = MySQLdb.connect(host=config['yubiMySQLHost'], user=config['yubiMySQLUser'], passwd=config['yubiMySQLPass'], db=config['yubiMySQLName'])
+		con = DB()
 	#except:
 	#	print "There's a problem with the database!\n"
 	#	quit()
