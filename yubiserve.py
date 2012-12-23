@@ -49,11 +49,11 @@ class OATHValidation():
 	def validateOATH(self, OATH, publicID):
 		cur = self.con.cursor()
 		cur.execute("SELECT counter, secret FROM oathtokens WHERE publicname = '" + publicID + "' AND active = '1'")
-		if cur:
+		res = cur.fetchone()
+		if not res:
 			validationResult = self.status['BAD_OTP']
 			return validationResult
-		(actualcounter, key) = cur.fetchone()
-		
+		(actualcounter, key) = res
 		if len(OATH) % 2 != 0:
 			self.validationResult = self.status['BAD_OTP']
 			return self.validationResult
@@ -117,12 +117,13 @@ class OTPValidation():
 				# pdb.set_trace()
 				cur = self.con.cursor()
 				cur.execute('SELECT aeskey, internalname FROM yubikeys WHERE publicname = "' + self.userid + '" AND active = "1"')
-				if not cur:
+				res = cur.fetchone()
+				if not res:
 					if config['yubiserveDebugLevel'] > 0:
 						print "Yubikey rejected because it is not found in the database, using the query: 'SELECT aeskey, internalname FROM yubikeys WHERE publicname = \"%s\" AND active = \"1\"'" % (self.userid)
 					self.validationResult = self.status['BAD_OTP']
 					return self.validationResult
-				(self.aeskey, self.internalname) = cur.fetchone()
+				(self.aeskey, self.internalname) = res
 				self.plaintext = self.aes128ecb_decrypt(self.aeskey, self.token)
 				uid = self.plaintext[:12]
 				if (self.internalname != uid):
@@ -137,10 +138,11 @@ class OTPValidation():
 				self.internalcounter = self.hexdec(self.plaintext[14:16] + self.plaintext[12:14] + self.plaintext[22:24])
 				self.timestamp = self.hexdec(self.plaintext[20:22] + self.plaintext[18:20] + self.plaintext[16:18])
 				cur.execute('SELECT counter, time FROM yubikeys WHERE publicname = "' + self.userid + '" AND active = "1"')
-				if not cur:
+				res = cur.fetchone()
+				if not res:
 					self.validationResult = self.status['BAD_OTP']
 					return self.validationResult
-				(self.counter, self.time) = cur.fetchone()
+				(self.counter, self.time) = res
 				if (self.counter) >= (self.internalcounter):
 					self.validationResult = self.status['REPLAYED_OTP']
 					return self.validationResult
@@ -226,17 +228,7 @@ class YubiServeHandler (BaseHTTPServer.BaseHTTPRequestHandler):
 		if scm != 'http':
 			self.send_error(501, "The server does not support the facility required.")
 			return
-		if (path != '/wsapi/2.0/verify') and (path != '/wsapi/2.0/oathverify'):
-			self.send_response(200)
-			self.send_header('Content-type', 'text/html')
-			self.end_headers()
-			self.wfile.write('<html>')
-			# Yubico Yubikey
-			self.wfile.write('Yubico Yubikeys:<br><form action="/wsapi/2.0/verify" method="GET"><input type="text" name="otp"><br><input type="submit"></form><br>')
-			# OATH HOTP
-			self.wfile.write('OATH/HOTP tokens:<br><form action="/wsapi/2.0/oathverify" method="GET"><input type="text" name="otp"><br><input type="text" name="publicid"><br><input type="submit"></form>')
-			self.wfile.write('</html>')
-		elif path == '/wsapi/2.0/verify': # Yubico Yubikey
+		if path == '/wsapi/2.0/verify': # Yubico Yubikey
 			try:
 				if len(query) > 0:
 					getData = self.getToDict(query)
@@ -258,8 +250,9 @@ class YubiServeHandler (BaseHTTPServer.BaseHTTPRequestHandler):
 							apiID = re.escape(getData['id'])
 							cur = self.con.cursor()
 							cur.execute("SELECT secret from apikeys WHERE id = '" + apiID + "'")
-							if cur:
-								api_key = cur.fetchone()[0]
+							res = cur.fetchone()
+							if res:
+								api_key = res[0]
 								otp_hmac = hmac.new(str(api_key), msg=str(orderedResult), digestmod=hashlib.sha1).hexdigest().decode('hex').encode('base64').strip()
 							else:
 								result = 't=' + iso_time + '\r\notp=' + getData['otp'] + '\r\nstatus=NO_CLIENT\r\n'
@@ -281,8 +274,9 @@ class YubiServeHandler (BaseHTTPServer.BaseHTTPRequestHandler):
 					apiID = re.escape(getData['id'])
 					cur = self.con.cursor()
 					cur.execute("SELECT secret from apikeys WHERE id = '" + apiID + "'")
-					if cur:
-						api_key = cur.fetchone()[0]
+					res = cur.fetchone()
+					if res:
+						api_key = res[0]
 						otp_hmac = hmac.new(api_key, msg=orderedResult, digestmod=hashlib.sha1).hexdigest().decode('hex').encode('base64').strip()
 			except KeyError:
 				pass
@@ -315,8 +309,9 @@ class YubiServeHandler (BaseHTTPServer.BaseHTTPRequestHandler):
 							apiID = re.escape(getData['id'])
 							cur = self.con.cursor()
 							cur.execute("SELECT secret from apikeys WHERE id = '" + apiID + "'")
-							if cur:
-								api_key = cur.fetchone()[0]
+							res = cur.fetchone()
+							if res:
+								api_key = res[0]
 								otp_hmac = hmac.new(api_key, msg=result, digestmod=hashlib.sha1).hexdigest().decode('hex').encode('base64').strip()
 							else:
 								result = 'otp=' + getData['otp'] + '\r\nstatus=NO_CLIENT\r\nt=' + iso_time
@@ -336,8 +331,9 @@ class YubiServeHandler (BaseHTTPServer.BaseHTTPRequestHandler):
 							apiID = re.escape(getData['id'])
 							cur = self.con.cursor()
 							cur.execute("SELECT secret from apikeys WHERE id = '" + apiID + "'")
-							if cur:
-								api_key = cur.fetchone()[0]
+							res = cur.fetchone()
+							if res:
+								api_key = res[0]
 								otp_hmac = hmac.new(api_key, msg=result, digestmod=hashlib.sha1).hexdigest().decode('hex').encode('base64').strip()
 					except KeyError:
 						pass
@@ -356,13 +352,24 @@ class YubiServeHandler (BaseHTTPServer.BaseHTTPRequestHandler):
 					apiID = re.escape(getData['id'])
 					cur = self.con.cursor()
 					cur.execute("SELECT secret from apikeys WHERE id = '" + apiID + "'")
-					if cur:
-						api_key = cur.fetchone()[0]
+					res = cur.fetchone()
+					if res:
+						api_key = res[0]
 						otp_hmac = hmac.new(api_key, msg=result, digestmod=hashlib.sha1).hexdigest().decode('hex').encode('base64').strip()
 			except KeyError:
 				pass
 			self.wfile.write('h=' + otp_hmac + '\r\n' + result)
 			return
+		else:
+			self.send_response(200)
+			self.send_header('Content-type', 'text/html')
+			self.end_headers()
+			self.wfile.write('<html>')
+			# Yubico Yubikey
+			self.wfile.write('Yubico Yubikeys:<br><form action="/wsapi/2.0/verify" method="GET"><input type="text" name="otp"><br><input type="submit"></form><br>')
+			# OATH HOTP
+			self.wfile.write('OATH/HOTP tokens:<br><form action="/wsapi/2.0/oathverify" method="GET"><input type="text" name="otp"><br><input type="text" name="publicid"><br><input type="submit"></form>')
+			self.wfile.write('</html>')
 	do_HEAD		= do_GET
 	do_PUT		= do_GET
 	do_DELETE	= do_GET
