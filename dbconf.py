@@ -168,7 +168,7 @@ else:
 				cur.execute("SELECT count(nickname) FROM oathtokens WHERE nickname = '" + nickname + "' AND active = '1'")
 				rowcount = cur.fetchone();	
 				if rowcount[0]:
-					cur.execute("UPDATE oathtokens SET active = '1' WHERE nickname = '" + nickname + "'")
+					cur.execute("UPDATE oathtokens SET active = '0' WHERE nickname = '" + nickname + "'")
 					print "Key '" + nickname + "' disabled."
 					con.commit()
 				else:
@@ -183,7 +183,7 @@ else:
 			else:
 				cur.execute("SELECT count(nickname) FROM oathtokens WHERE nickname = '" + nickname + "' AND active = '1'")
 				rowcount = cur.fetchone();	
-				if rowcount[0]:
+				if rowcount[0] == 0:
 					cur.execute("UPDATE oathtokens SET active = '1' WHERE nickname = '" + nickname + "'")
 					print "Key '" + nickname + "' enabled."
 					con.commit()
@@ -219,10 +219,10 @@ else:
 			rowcount = cur.fetchone();	
 			print " %s keys into database:" % (rowcount[0])
 			if rowcount[0]:
-				cur.execute('SELECT nickname, publicname FROM oathtokens')
+				cur.execute('SELECT nickname, publicname, active FROM oathtokens')
 				print '[Nickname]\t\t>> [PublicID]'
-				for (nickname, publicname) in cur:
-					print '%-23s >> %s ' %  (nickname, publicname) 
+				for (nickname, publicname,active) in cur:
+					print '%-23s >> %-21s >> %s ' %  (nickname, publicname, active)
 			else:
 				print 'No keys in database\n'
 		else:
