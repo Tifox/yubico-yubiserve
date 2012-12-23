@@ -1,0 +1,3 @@
+This directory contains test scripts used by developers when testing for 
+basic regressions.   All values used in these scripts are samples only and
+not suitable for normal use.
