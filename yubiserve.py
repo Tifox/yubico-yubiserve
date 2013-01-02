@@ -129,7 +129,7 @@ class OTPValidation():
 				if (self.internalname != uid):
 					if config['yubiserveDebugLevel'] > 0:
 						print "Yubikey rejected because the uid (6 byte secret) in the decrypted AES key (set with with ykpersonalise -ouid) does not match the secret key (internalname) in the database"
-						print "Decrypted AES: %s\n Username from yubikey: %s shoould equal the database username: %s" % (self.plaintext, uid, self.internalname)
+						print "Decrypted AES: %s\n Username from yubikey: %s should equal the database username: %s" % (self.plaintext, uid, self.internalname)
 					self.validationResult = self.status['BAD_OTP']
 					return self.validationResult
 				if not (self.CRC() or self.isCRCValid()):
