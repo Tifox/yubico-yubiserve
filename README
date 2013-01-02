@@ -163,6 +163,36 @@ status=OK
 t=2010-11-21T00:10:56
 h=vYoG9Av8uG6OqVkmMFuANi4fyWw=
 
+                == Basic monitoring of the Yubiserve Validation Server ==
+
+The yubiserve tool allows you to set up basic monitoring by making an http request using
+the URI /healthcheck.
+
+This check will confirm if the yubserve tool is capable of connecting to it's database and
+capable of performing queries. It also counts the number of enabled tokens/keys, and will produce
+a warning if no keys are enabled.
+
+Options are:
+/healthcheck?service=all
+/healthcheck?service=oathtoken
+/healthcheck?service=yubikeys
+
+Example: curl -s http://localhost:8000/healthcheck?service=yubikeys
+
+Output format is:
+OK: (no message)
+WARN: multi-line warning message
+CRITICAL: multi-line warning message
+
+HTTP result codes:
+200 - OK / WARN
+404 - Something bad, the health check did not run
+500 - The healthcheck got an un-handled exception during operation. An error will be printed.
+503 - The healthcheck found no enabled keys.
+
+The recommended way to perform this is to use Nagios or other monitoring tool to poll the yubiserve health check
+and check the returned string starts with "OK:"
+
 
                                 == Final thoughts ==
 That's all. Pretty simple, huh?
