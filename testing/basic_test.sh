@@ -51,8 +51,12 @@ curl http://localhost:8000/wsapi/2.0/verify?id=1\&otp=hihrhghufvfibbbekurednelnk
 echo "${Purple}Enable yubikey.  The following test should show OK${reset}"
 dbconf.py -ye nelg
 curl http://localhost:8000/wsapi/2.0/verify?id=1\&otp=hihrhghufvfibbbekurednelnklnulclbiubvjrenlii
-
 echo
+
+echo "${Cyan}Healthcheck. (/healthcheck?service=yubikeys), expected result should be OK"
+curl -s 'http://localhost:8000/healthcheck?service=yubikeys'
+echo "${reset}"
+
 echo "${Purple}Replay yubikey.  The following test should show REPLAYED_OTP${reset}"
 curl http://localhost:8000/wsapi/2.0/verify?id=1\&otp=hihrhghufvfibbbekurednelnklnulclbiubvjrenlii
 
@@ -62,8 +66,15 @@ dbconf.py -hk Test
 dbconf.py -ha Test testtesttest e623694b2621a6eda41d9380c3dfc4fd67ffadb9
 echo "${Pink}Test OATH.  The following test should show OK${reset}"
 curl 'http://localhost:8000/wsapi/2.0/oathverify?otp=534088&publicid=testtesttest'
-
 echo
+
+echo "${Cyan}Healthcheck. (/healthcheck?service=oathtokens), expected result should be OK"
+curl -s 'http://localhost:8000/healthcheck?service=oathtokens'
+echo
+echo "${Cyan}Healthcheck. (/healthcheck), expected result should be OK"
+curl -s 'http://localhost:8000/healthcheck'
+echo "${reset}"
+
 echo "${Pink}Replay OATH.  The following test should show NO_AUTH${reset}"
 curl 'http://localhost:8000/wsapi/2.0/oathverify?otp=534088&publicid=testtesttest'
 
@@ -81,6 +92,9 @@ echo "${LightBlue}Setting test keys to disabled for security${reset}"
 dbconf.py -yd nelg
 dbconf.py -hd Test
 echo
+echo "${Cyan}Healthcheck. (/healthcheck), expected result should be WARN for both services"
+curl -s 'http://localhost:8000/healthcheck'
+echo "${reset}"
 dbconf.py -yl | egrep "database|Public|nelg"
 dbconf.py -hl | egrep "database|Public|Test"
 echo
