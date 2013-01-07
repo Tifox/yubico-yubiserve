@@ -51,11 +51,16 @@ curl http://localhost:8000/wsapi/2.0/verify?id=1\&otp=hihrhghufvfibbbekurednelnk
 echo "${Purple}Enable yubikey.  The following test should show OK${reset}"
 dbconf.py -ye nelg
 curl http://localhost:8000/wsapi/2.0/verify?id=1\&otp=hihrhghufvfibbbekurednelnklnulclbiubvjrenlii
+
+echo "${Purple}CRC failure example.  The following test should show BAD_OTP${reset}"
+dbconf.py -ye nelg
+curl http://localhost:8000/wsapi/2.0/verify?id=1\&otp=hihrhghufvfirvbegrijgdjhjhtgihcehehtcrgbrhrb
 echo
 
 echo "${Cyan}Healthcheck. (/healthcheck?service=yubikeys), expected result should be OK"
 curl -s 'http://localhost:8000/healthcheck?service=yubikeys'
 echo "${reset}"
+echo
 
 echo "${Purple}Replay yubikey.  The following test should show REPLAYED_OTP${reset}"
 curl http://localhost:8000/wsapi/2.0/verify?id=1\&otp=hihrhghufvfibbbekurednelnklnulclbiubvjrenlii
@@ -67,13 +72,16 @@ dbconf.py -ha Test testtesttest e623694b2621a6eda41d9380c3dfc4fd67ffadb9
 echo "${Pink}Test OATH.  The following test should show OK${reset}"
 curl 'http://localhost:8000/wsapi/2.0/oathverify?otp=534088&publicid=testtesttest'
 echo
+echo
 
 echo "${Cyan}Healthcheck. (/healthcheck?service=oathtokens), expected result should be OK"
 curl -s 'http://localhost:8000/healthcheck?service=oathtokens'
 echo
+echo
 echo "${Cyan}Healthcheck. (/healthcheck), expected result should be OK"
 curl -s 'http://localhost:8000/healthcheck'
 echo "${reset}"
+echo
 
 echo "${Pink}Replay OATH.  The following test should show NO_AUTH${reset}"
 curl 'http://localhost:8000/wsapi/2.0/oathverify?otp=534088&publicid=testtesttest'

@@ -87,6 +87,7 @@ class OTPValidation():
 		crc = 0xffff;
 		for i in range(0, 16):
 			b = self.hexdec(self.plaintext[i*2] + self.plaintext[(i*2)+1])
+			crc = crc ^ (b & 0xff)
 			for j in range(0, 8):
 				n = crc & 1
 				crc = crc >> 1
@@ -95,7 +96,7 @@ class OTPValidation():
 		self.OTPcrc = crc
 		return [crc]
 	def isCRCValid(self):
-		return (self.crc == 0xf0b8)
+		return (self.OTPcrc == 0xf0b8)
 	def aes128ecb_decrypt(self, aeskey, aesdata):
 		return AES.new(aeskey.decode('hex'), AES.MODE_ECB).decrypt(aesdata.decode('hex')).encode('hex')
 	def getResult(self):
@@ -132,7 +133,7 @@ class OTPValidation():
 						print "Decrypted AES: %s\n Username from yubikey: %s should equal the database username: %s" % (self.plaintext, uid, self.internalname)
 					self.validationResult = self.status['BAD_OTP']
 					return self.validationResult
-				if not (self.CRC() or self.isCRCValid()):
+				if not self.CRC() or not self.isCRCValid():
 					self.validationResult = self.status['BAD_OTP']
 					return self.validationResult
 				self.internalcounter = self.hexdec(self.plaintext[14:16] + self.plaintext[12:14] + self.plaintext[22:24])
