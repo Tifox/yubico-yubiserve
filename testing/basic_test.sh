@@ -44,6 +44,13 @@ dbconf.py -ya nelg hihrhghufvfi 676f6e656c67 89eb6d3d930077b427a88760db0fc375
 sqlite $(dirname $DBCONF)/yubikeys.sqlite "update yubikeys set counter=768, time=10864886, aeskey='89eb6d3d930077b427a88760db0fc375' where nickname = 'nelg';"
 dbconf.py -yl
 
+
+echo "${Purple}Adding a client, if no client with id=1 exists${reset}"
+sqlite $(dirname $DBCONF)/yubikeys.sqlite "select * from apikeys where id = 1;" | grep 1 || dbconf.py -aa test123
+echo "${Purple}Verifying client, if no client with id=1 exists${reset}"
+sqlite $(dirname $DBCONF)/yubikeys.sqlite "select * from apikeys where id = 1;" | grep 1 || exit 1;
+
+
 echo "${Purple}Disable yubikey.  The following test should show BAD_OTP${reset}"
 dbconf.py -yd nelg
 curl http://localhost:8000/wsapi/2.0/verify?id=1\&otp=hihrhghufvfibbbekurednelnklnulclbiubvjrenlii
@@ -55,6 +62,10 @@ curl http://localhost:8000/wsapi/2.0/verify?id=1\&otp=hihrhghufvfibbbekurednelnk
 echo "${Purple}CRC failure example.  The following test should show BAD_OTP${reset}"
 dbconf.py -ye nelg
 curl http://localhost:8000/wsapi/2.0/verify?id=1\&otp=hihrhghufvfirvbegrijgdjhjhtgihcehehtcrgbrhrb
+echo
+
+echo "${Purple}invalid input.  The following test should show BAD_OTP${reset}"
+curl http://localhost:8000/wsapi/2.0/verify?id=1\&otp=\&\&\&\&\&\&\&\&\&\&\&\&\&\&\&\&\&\&\&\&\&\&\&\&
 echo
 
 echo "${Cyan}Healthcheck. (/healthcheck?service=yubikeys), expected result should be OK"
