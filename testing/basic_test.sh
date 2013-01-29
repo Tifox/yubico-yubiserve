@@ -64,8 +64,16 @@ dbconf.py -ye nelg
 curl http://localhost:8000/wsapi/2.0/verify?id=1\&otp=hihrhghufvfirvbegrijgdjhjhtgihcehehtcrgbrhrb
 echo
 
-echo "${Purple}invalid input.  The following test should show BAD_OTP${reset}"
+echo "${Purple}Invalid input.  The following test should show MISSING_PARAMETER${reset}"
 curl http://localhost:8000/wsapi/2.0/verify?id=1\&otp=\&\&\&\&\&\&\&\&\&\&\&\&\&\&\&\&\&\&\&\&\&\&\&\&
+echo
+
+echo "${Purple}Invalid paramaters.  The following test should show MISSING_PARAMETER.  It will log that ott is not a valid param and will log the value${reset}"
+curl http://localhost:8000/wsapi/2.0/verify?id=1\&ott=hihrhghufvfibbbekurednelnklnulclbiubvjrenlii
+echo
+
+echo "${Purple}Invalid paramaters.  The following test should show BAD_OTP.  It will also log that the OTP does not match the expected syntax${reset}"
+curl http://localhost:8000/wsapi/2.0/verify?id=1\&otp=hihrhghufvfibbbek1urednelnklnulclbiubvjrenlii
 echo
 
 echo "${Cyan}Healthcheck. (/healthcheck?service=yubikeys), expected result should be OK"

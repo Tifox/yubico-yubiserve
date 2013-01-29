@@ -111,6 +111,11 @@ class OTPValidation():
 			self.validationResult = self.status['BAD_OTP']
 			return self.validationResult
 		match = re.search('([cbdefghijklnrtuv]{0,16})([cbdefghijklnrtuv]{32})', re.escape(OTP))
+		if match == None:
+			print "OTP does not match expected syntax."
+			self.validationResult = self.status['BAD_OTP']
+			return self.validationResult
+
 		try:
 			if match.group(1) and match.group(2):
 				self.userid = match.group(1)
@@ -216,7 +221,15 @@ class YubiServeHandler (BaseHTTPServer.BaseHTTPRequestHandler):
 		dict = {}
 		for singleValue in qs.split('&'):
 			keyVal = singleValue.split('=')
-			dict[urllib.unquote_plus(keyVal[0])] = urllib.unquote_plus(keyVal[1])
+			# Validation of input
+			if keyVal[0] in ['otp','nonce','id','publicid','service'] and len(keyVal[1]) > 0:
+				if keyVal[0] not in dict:
+					dict[keyVal[0]] = urllib.unquote_plus(keyVal[1])
+			else:
+				if len(keyVal[0]) > 0:
+					print "Invalid param '%s=%s' passed to yubiserve" % (keyVal[0],keyVal[1])
+				else:
+					pass	
 		return dict
 	def setup(self):
 		self.connection = self.request
