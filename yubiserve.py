@@ -5,18 +5,27 @@ from Crypto.Cipher import AES
 from OpenSSL import SSL
 import hmac, hashlib
 from threading import Thread
+
+isThereDatabaseSupport = False
 try:
 	import MySQLdb
+	isThereDatabaseSupport = True
 except ImportError:
 	pass
 try:
 	import sqlite3
+	isThereDatabaseSupport = True
 except ImportError:
 	pass
 try:
 	import sqlite
+	isThereDatabaseSupport = True
 except ImportError:
 	pass
+
+if isThereDatabaseSupport == False:
+	print "Cannot continue without any database support.\nPlease read README.\n\n"
+	quit()
 
 def parseConfigFile():	# Originally I wrote this function to parse PHP configuration files!
 	config = open(os.path.dirname(os.path.realpath(__file__)) + '/yubiserve.cfg', 'r').read().splitlines()
@@ -453,19 +462,6 @@ class SecureHTTPServer(BaseHTTPServer.HTTPServer):
 class ThreadingHTTPServer (SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer): pass
 class ThreadingHTTPSServer (SocketServer.ThreadingMixIn, SecureHTTPServer): pass
 
-try:
-	if MySQLdb != None:
-		isThereMysql = True
-except NameError:
-	isThereMysql = False
-try:
-	if sqlite != None:
-		isThereSqlite = True
-except NameError:
-	isThereSqlite = False
-if isThereMysql == isThereSqlite == False:
-	print "Cannot continue without any database support.\nPlease read README.\n\n"
-	quit()
 if config['yubiDB'] == 'mysql' and (config['yubiMySQLHost'] == '' or config['yubiMySQLUser'] == '' or config['yubiMySQLPass'] == '' or config['yubiMySQLName'] == ''):
 	print "Cannot continue without any MySQL configuration.\nPlease read README.\n\n"
 	quit()
