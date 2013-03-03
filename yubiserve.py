@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import re, os, time, socket
+import re, os, time, socket,sys
 import urlparse, SocketServer, urllib, BaseHTTPServer
 from Crypto.Cipher import AES
 from OpenSSL import SSL
@@ -112,7 +112,8 @@ class OTPValidation():
 			return self.validationResult
 		match = re.search('([cbdefghijklnrtuv]{0,16})([cbdefghijklnrtuv]{32})', re.escape(OTP))
 		if match == None:
-			print "OTP does not match expected syntax."
+			print "OTP does not match expected syntax.\n"
+			sys.stdout.flush()
 			self.validationResult = self.status['BAD_OTP']
 			return self.validationResult
 
@@ -482,6 +483,7 @@ http_thread.start()
 ssl_thread.start()
 
 print "HTTP Server is running."
+sys.stdout.flush()
 
 while 1:
 	time.sleep(1)
