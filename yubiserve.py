@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import re, os, time, socket,sys
+import re, os, time, socket, sys, signal
 import urlparse, SocketServer, urllib, BaseHTTPServer
 from Crypto.Cipher import AES
 from OpenSSL import SSL
@@ -25,7 +25,7 @@ except ImportError:
 
 if isThereDatabaseSupport == False:
 	print "Cannot continue without any database support.\nPlease read README.\n\n"
-	quit()
+	sys.exit(1)
 
 def parseConfigFile():	# Originally I wrote this function to parse PHP configuration files!
 	config = open(os.path.dirname(os.path.realpath(__file__)) + '/yubiserve.cfg', 'r').read().splitlines()
@@ -206,7 +206,7 @@ class DB():
           else:
              print "unhandled MySQL exception"
              print e
-             quit()
+             sys.exit(1)
         except Exception, e:
           print "unhandled exception"
           print repr(e)
@@ -225,7 +225,7 @@ class YubiServeHandler (BaseHTTPServer.BaseHTTPRequestHandler):
 		con = DB()
 	#except:
 	#	print "There's a problem with the database!\n"
-	#	quit()
+	#	sys.exit(1)
 	
 	def getToDict(self, qs):
 		dict = {}
@@ -462,9 +462,15 @@ class SecureHTTPServer(BaseHTTPServer.HTTPServer):
 class ThreadingHTTPServer (SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer): pass
 class ThreadingHTTPSServer (SocketServer.ThreadingMixIn, SecureHTTPServer): pass
 
+def stop_signal_handler(signum, frame):
+	print '\nStop signal detected\nshutting down the servers'
+	yubiserveHTTP.shutdown()
+	yubiserveSSL.shutdown()
+	sys.exit(0)
+
 if config['yubiDB'] == 'mysql' and (config['yubiMySQLHost'] == '' or config['yubiMySQLUser'] == '' or config['yubiMySQLPass'] == '' or config['yubiMySQLName'] == ''):
 	print "Cannot continue without any MySQL configuration.\nPlease read README.\n\n"
-	quit()
+	sys.exit(1)
 
 yubiserveHTTP = ThreadingHTTPServer((config['yubiserveHOST'], config['yubiservePORT']), YubiServeHandler)
 yubiserveSSL = ThreadingHTTPSServer((config['yubiserveHOST'], config['yubiserveSSLPORT']), YubiServeHandler)
@@ -472,14 +478,16 @@ yubiserveSSL = ThreadingHTTPSServer((config['yubiserveHOST'], config['yubiserveS
 http_thread = Thread(target=yubiserveHTTP.serve_forever)
 ssl_thread = Thread(target=yubiserveSSL.serve_forever)
 
-http_thread.setDaemon(True)
-ssl_thread.setDaemon(True)
+# set the handler for the signal send by Ctrl+C
+signal.signal(signal.SIGINT, stop_signal_handler)
+# and the default signal send by the kill command
+signal.signal(signal.SIGTERM, stop_signal_handler)
 
 http_thread.start()
 ssl_thread.start()
 
-print "HTTP Server is running."
+print "HTTP and HTTPS servers are running."
 sys.stdout.flush()
 
-while 1:
-	time.sleep(1)
+# wait for signal
+signal.pause()
