@@ -19,15 +19,23 @@ The project is divided into two parts:
 
                        == Installation ==
 Installation is pretty simple, you just have to install few python packages:
+
 Under Debian, you can run:
-apt-get install python python-crypto python-openssl
+  apt-get install python python-crypto python-openssl
+
+Under Mageia, you will need to use:
+  urpmi python-pycrypto python-OpenSSL
+
 If you want to add the sqlite support, you should run:
-apt-get install python-sqlite
-sqlite3 is also supported, which is included with python in RHEL6.
+  apt-get install python-sqlite
+  sqlite3 is also supported, which is included with python in RHEL6.
+
 Or, if you want to add the mysql support, you should run:
-apt-get install python-mysqldb
+  apt-get install python-mysqldb
 If you chosen the mysql support, you must create a database and create the
 tables. The mysql dump is at src/dump.mysql.
+
+
 Then, you have to generate the certificate for ssl validation, so if you don't
 already have a certificate you have to issue the following command to self-sign
 one:
