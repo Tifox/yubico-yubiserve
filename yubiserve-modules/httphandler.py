@@ -1,23 +1,15 @@
 class HTTPHandler (BaseHTTPServer.BaseHTTPRequestHandler):
    __base = BaseHTTPServer.BaseHTTPRequestHandler
    __base_handle = __base.handle
-   server_version = 'Yubiserve/3.1'
-   global config
-   #try:
-   if config['yubiDB'] == 'sqlite3':
-      con = sqlite3.connect(os.path.dirname(os.path.realpath(__file__)) + '/yubikeys.sqlite3', check_same_thread = False)
-   elif config['yubiDB'] == 'sqlite':
-      con = sqlite.connect(os.path.dirname(os.path.realpath(__file__)) + '/yubikeys.sqlite', check_same_thread = False)
-   elif config['yubiDB'] == 'mysql':
-      con = DB()
-   #except:
-   #       print "There's a problem with the database!\n"
-   #       sys.exit(1)
-   
+   server_version = None
    def __init__(self, version):
       self.server_version = version
-   
-   def _getToDict(self, qs):
+      do_HEAD = do_GET
+      do_PUT = do_GET
+      do_DELETE = do_GET
+      do_CONNECT = do_GET
+      do_POST = do_GET   
+   def _get_to_dict(self, qs):
       dict = {}
       for singleValue in qs.split('&'):
          keyVal = singleValue.split('=')
@@ -187,8 +179,3 @@ class HTTPHandler (BaseHTTPServer.BaseHTTPRequestHandler):
          # OATH HOTP
          self.wfile.write('OATH/HOTP tokens:<br><form action="/wsapi/2.0/oathverify" method="GET"><input type="text" name="otp"><br><input type="text" name="publicid"><br><input type="submit"></form>')
          self.wfile.write('</html>')
-   do_HEAD    = do_GET
-   do_PUT     = do_GET
-   do_DELETE       = do_GET
-   do_CONNECT      = do_GET
-   do_POST    = do_GET

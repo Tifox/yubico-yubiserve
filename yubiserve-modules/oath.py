@@ -4,7 +4,11 @@
 # available on GitHub: https://github.com/gingerlime/hotpie
 #
 
-import hmac, hashlib, array, time, unittest
+import hmac
+import hashlib
+import array
+import time
+import unittest
 
 class OATHValidation():
    validationResult = 0

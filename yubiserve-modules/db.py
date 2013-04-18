@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-class yusiserveDB():
+class YubiserveDB():
    mysqlhost = None
    mysqluser = None
    mysqlpass = None
@@ -9,11 +9,11 @@ class yusiserveDB():
    cur       = None
 
     def __init__(self, dbtype = 'sqlite', mysqlhost, mysqluser, mysqlpass, mysqldb):
-        self.dbtype    = dbtype
+      self.dbtype = dbtype
       self.mysqlhost = mysqlhost
       self.mysqluser = mysqluser
       self.mysqlpass = mysqlpass
-      self.mysqldb   = mysqldb
+      self.mysqldb = mysqldb
       if self.dbtype == 'mysql'
          global MySQLdb
          try:

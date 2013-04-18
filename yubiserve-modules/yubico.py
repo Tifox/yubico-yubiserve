@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 class OTPValidation():
-	def __init__(self, connection):
+	def __init__(self, database):
 		self.status = {'OK': 1, 'BAD_OTP': 2, 'REPLAYED_OTP': 3, 'DELAYED_OTP': 4, 'NO_CLIENT': 5, 'ERROR': 6}
-		self.validationResult = 0
-		self.database = None
+		#self.validationResult = 0
+		self.database = database
+      return self
 	def _hexdec(self, hex):
 		return int(hex, 16)
 	def _modhex2hex(self, string):
@@ -29,15 +30,11 @@ class OTPValidation():
 					crc = crc ^ 0x8408
 		self.OTPcrc = crc
 		return [crc]
-	def _isCRCValid(self):
+	def _is_crc_valid(self):
 		return (self.OTPcrc == 0xf0b8)
 	def _aes128ecb_decrypt(self, aeskey, aesdata):
 		return AES.new(aeskey.decode('hex'), AES.MODE_ECB).decrypt(aesdata.decode('hex')).encode('hex')
-	def getResult(self): # What is this?!
-		return self.validationResult
-	def getResponse(self): # What is this?!
-		return self.validationResponse
-	def validateOTP(self, OTP):
+   def validateOTP(self, OTP):
 		global config
 		self.OTP = re.escape(OTP)
 		self.validationResult = 0
