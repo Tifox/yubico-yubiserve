@@ -23,7 +23,7 @@ class ResponseGenerator():
                nonce = getdata['nonce']
             else:
                nonce = ''
-            yubico = OTPValidation(otp)
+            yubico = OTPValidation(database)
             status = [k for k, v in yubico.status.iteritems() if v == yubico.validateOTP(otp)][0]
             # Can't use just orderedResult for everything: some client softwares
             # expect to find it in the other order
@@ -56,7 +56,7 @@ class ResponseGenerator():
             else:
                oath = OATHValidation(database)
                publicid = getdata['publicid']
-               status = oath.validateBackup(otp, publicid, hotp=False)
+               status = oath.validateBackup(otp, publicid)
                if status >= 0:
                   result = 't=%s\r\notp=%s\r\npublicid=%s\r\nstatus=OK\r\nremainingkeys=%s\r\n' % (iso_time, otp, publicid, status)
                   orderedResult = 'otp=%s&publicid=%s&remainingkeys=%s&status=OK&t=%s' % (otp, publicid, status, iso_time)

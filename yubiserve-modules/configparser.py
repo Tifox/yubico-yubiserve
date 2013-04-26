@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-def parse():   # Originally I wrote this function to parse PHP configuration files!
+def config_parse():   # Originally I wrote this function to parse PHP configuration files!
    config = open(os.path.dirname(os.path.realpath(__file__)) + '/yubiserve.cfg', 'r').read().splitlines()
    keys = {}
    for line in config:

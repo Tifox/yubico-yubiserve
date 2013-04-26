@@ -40,7 +40,8 @@ class OATHValidation():
          long_num >>= 8
       return byte_array
    
-   def validateOATH(self, OATH, publicID, hotp = True, timewindow=30): # By default, we check for HOTP (backward compatibility too)
+   # By default, we check for HOTP (backward compatibility)
+   def validateOATH(self, OATH, publicID, hotp = True, timewindow=30):
       res = database.query("SELECT counter, secret FROM oathtokens WHERE publicname = '" + publicID + "' AND active = '1'")
       if not res:
          validationResult = self.status['BAD_OTP']
@@ -56,7 +57,7 @@ class OATHValidation():
                try:
                   retval = database.query("UPDATE oathtokens SET counter = " + str(C) + " WHERE publicname = '" + publicID + "' AND active = '1'", commit = True)
                except:
-                  # An error has been raised, write it into the log and return fail!
+                  # An error has occurred, write it into the log and return fail!
                   return self.status['ERROR']
                if retval:
                   return self.status['OK']
@@ -69,10 +70,10 @@ class OATHValidation():
          else:
             return self.status['NO_AUTH']
    
-   def validateBackup(self, code, publicID): # Use the one-time backup password and destroy it
+   def validateBackup(self, code, publicID):    # Use the one-time backup password and destroy it
       curdate = 
       res = database.query("UPDATE backuptokens SET date = DATETIME() WHERE publicname = '" + publicID + "' AND code = '" + code + "'", commit = True)
-      if res:
+      if res:                                   # Does is work this way? Have to test it :/
          return (self.status['OK'], database.query("SELECT COUNT(*) FROM backuptokens WHERE publicname = '" + publicID + " AND date IS NULL")) # Return the remaining number of keys
       else:
          return (self.status['NO_AUTH'], -1)
