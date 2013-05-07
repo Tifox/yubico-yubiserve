@@ -3,9 +3,9 @@ import re
 import hmac
 import hashlib
 from Crypto.Cypher import AES
-from yubiserve-modules import db
-from yubiserve-modules import yubico
-from yubiserve-modules import oath
+from yubiserve_modules import db
+from yubiserve_modules import yubico
+from yubiserve_modules import oath
 
 class ResponseGenerator():
    database = None
@@ -77,7 +77,7 @@ class ResponseGenerator():
       
    def _get_iso_time(self):
       return time.strftime("%Y-%m-%dT%H:%M:%S")
-	def validate_hmac(self, hmac):
+   def validate_hmac(self, hmac):
       # check for hmac validation, issue #14
       pass
    def _sign_message(self, database, message, api_key):

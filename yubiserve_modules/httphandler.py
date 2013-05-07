@@ -1,7 +1,6 @@
 #!/usr/bin/env python
-from yubiserve-modules import configparser
-from yubiserve-modules import db
-from yubiserve-modules import response
+from yubiserve_modules import db
+from yubiserve_modules import response
 
 class HTTPHandler (BaseHTTPServer.BaseHTTPRequestHandler):
    __base = BaseHTTPServer.BaseHTTPRequestHandler
@@ -12,7 +11,7 @@ class HTTPHandler (BaseHTTPServer.BaseHTTPRequestHandler):
    do_PUT = do_GET
    do_DELETE = do_GET
    do_CONNECT = do_GET
-   do_POST = do_GET   
+   do_POST = do_GET
    def __init__(self, version):
       global config
       self.server_version = version
@@ -35,8 +34,8 @@ class HTTPHandler (BaseHTTPServer.BaseHTTPRequestHandler):
       
    def _setup(self):
       self.connection = self.request
-      self.rfile = socket._fileobject(self.request, "rb", self.rbufsize)
-      self.wfile = socket._fileobject(self.request, "wb", self.wbufsize)
+      self._rfile = socket._fileobject(self.request, "rb", self.rbufsize)
+      self._wfile = socket._fileobject(self.request, "wb", self.wbufsize)
       
    def log_message(self, format, *args):     # To be implemented into logging
       pass
@@ -52,7 +51,7 @@ class HTTPHandler (BaseHTTPServer.BaseHTTPRequestHandler):
          self.send_header('Content-type', 'text/plain')
          self.end_headers()
          response = ResponseGenerator(self.database, get_data, 'yubico')
-         self.wfile.write(response + '\r\n')
+         self._wfile.write(response + '\r\n')
       elif path == '/wsapi/2.0/oathverify':  # OATH (TOTP/HOTP)
          get_data = self.getToDict(query)
          self.send_response(200)
@@ -61,20 +60,20 @@ class HTTPHandler (BaseHTTPServer.BaseHTTPRequestHandler):
          if not 'totp' in get_data:
             response = ResponseGenerator(self.database, get_data, 'HOTP')
          else:
-            response = ResponseGenerator(self.database, get_data, 'TOTP'
-         self.wfile.write(response + '\r\n')
+            response = ResponseGenerator(self.database, get_data, 'TOTP')
+         self._wfile.write(response + '\r\n')
       elif path == '/wsapi/2.0/backupotp':   # Password OTP backup
          get_data = self.getToDict(query)
          self.send_response(200)
          self.send_header('Content-type', 'text/plain')
          self.end_headers()
          response = ResponseGenerator(self.database, get_data, 'BackupPass')
-         self.wfile.write(response + '\r\n')
+         self._wfile.write(response + '\r\n')
       elif path == '/healthcheck':
          pass                                # To be added
       else:
          self.send_response(404)
          self.send_header('Content-type', 'text/html')
          self.end_headers()
-         self.wfile.write('Yubico Yubiserve. No template has been found.')
+         self._wfile.write('Yubico Yubiserve. No template has been found.')
       self.database.close()                  # Close the database to save resources
