@@ -143,7 +143,7 @@ else:
 		elif (argv[1][2] == 'l'):
 			cur.execute('SELECT count(nickname) FROM yubikeys')
 			rowcount = cur.fetchone();	
-			print " %s keys into database:" % (rowcount[0])
+			print " %d keys into database:" % (rowcount[0])
 			if rowcount[0]:
 				cur.execute('SELECT nickname, publicname, active FROM yubikeys')
 				print '[Nickname]\t\t>> [PublicID]'
@@ -214,7 +214,7 @@ else:
 		elif (argv[1][2] == 'l'):
 			cur.execute('SELECT count(nickname) FROM oathtokens')
 			rowcount = cur.fetchone();	
-			print " %s keys into database:" % (rowcount[0])
+			print " %d keys into database:" % (rowcount[0])
 			if rowcount[0]:
 				cur.execute('SELECT nickname, publicname, active FROM oathtokens')
 				print '[Nickname]\t\t>> [PublicID]'
@@ -256,7 +256,7 @@ else:
 		elif (argv[1][2] == 'l'):
 			cur.execute('SELECT count(nickname) FROM apikeys')
 			rowcount = cur.fetchone();	
-			print " %s keys into database:" % (rowcount[0])
+			print " %d keys into database:" % (rowcount[0])
 			if rowcount[0]:
 				cur.execute('SELECT nickname FROM apikeys')
 				print '[Nickname]'
