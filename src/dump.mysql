@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS `apikeys` (
   `secret` varchar(28) default NULL,
   `id` int(11) NOT NULL,
   PRIMARY KEY  (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 
@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS `oathtokens` (
   `counter` int(11) NOT NULL default '1',
   UNIQUE KEY `nickname` (`nickname`),
   UNIQUE KEY `publicname` (`publicname`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 
@@ -57,5 +57,5 @@ CREATE TABLE IF NOT EXISTS `yubikeys` (
   `time` int(11) NOT NULL default '1',
   UNIQUE KEY `nickname` (`nickname`),
   UNIQUE KEY `publicname` (`publicname`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
